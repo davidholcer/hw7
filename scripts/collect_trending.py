@@ -1,37 +1,13 @@
 #lotsa imports
-# from selenium import webdriver
-# from selenium.webdriver.chrome.service import Service
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import codecs
 import re
 import json
 import requests
-# from webdriver_manager.chrome import ChromeDriverManager
 import logging
 
 logger=logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
-
-# def grab_html_selenium(site:str):
-#     """
-#     gets bs4 soup of site by running a selenium web browser
-
-#     args:
-#         site (str): the site url to fetch
-#     """
-#     driver=webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-#     wait = WebDriverWait(driver, 10)
-#     driver.get(site)
-#     get_url = driver.current_url
-#     wait.until(EC.url_to_be(site))
-#     # logger.debug("Fetching news from {}".format(site))
-#     if get_url == site:
-#         page_source = driver.page_source
-#     soup = BeautifulSoup(page_source,features="html.parser")
-#     driver.quit()
-#     return soup
 
 def grab_html(site:str):
     """
@@ -42,10 +18,8 @@ def grab_html(site:str):
     """
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
     result = requests.get(site, headers=headers)
-    # return result.content.decode()
     soup = BeautifulSoup(result.content.decode(),features="html.parser")
     return soup
-    # print(result.content.decode())
 
 def get_art_info(site:str):
     """
@@ -72,9 +46,9 @@ def get_art_info(site:str):
     published_date = soup.find('span', class_='published-date__since').text
 
     # Print the results
-    print("Article Subtitle:", article_subtitle)
-    print("Author:", author)
-    print("Published Date:", published_date)
+    # print("Article Subtitle:", article_subtitle)
+    # print("Author:", author)
+    # print("Published Date:", published_date)
     return {"pd": published_date, "author": author, "blurb": article_subtitle}
 
 
@@ -130,7 +104,6 @@ def save_json(infos: list,output: str):
 if __name__=="__main__":
     glink="https://montrealgazette.com/category/news/"
     gaz=grab_html(glink)
-    # print(gaz)
     arts=get_trending(gaz)
     output="trending.json"
     save_json(arts,output)
