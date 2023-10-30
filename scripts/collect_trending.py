@@ -27,10 +27,26 @@ logger=logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
 
 def get_html(site:str,cache:bool,stale:int):
+    """
+    gets the html of the Montreal Gazette page
+
+    args:
+        site (str): the site url to fetch
+        cache (bool): whether or not to fetch info from cache
+        stale (int): the number of days in the past a link can be before becoming stale and requiring a refetch of data
+    """
     if cache==False:
         soup=grab_html(site, cache,homepage=True)
     else:
-        news_out="../data/news.html"
+        # Define the directory path
+        directory = '../data'
+
+        # Check if the directory exists, and if not, create it
+        if not os.path.exists(directory):os.makedirs(directory)
+
+        # Now you can work with the file inside the directory
+        news_out = os.path.join(directory, 'news.html')
+
         old=False
         try:
             mod_time = os.path.getmtime(news_out)
@@ -73,6 +89,14 @@ def grab_html(site:str,cache:bool,homepage:bool=False):
     return soup
 
 def get_art_info(site:str,cache:bool,stale:int):
+    """
+    gathers data on an individual Montreal Gazette news page
+
+    args:
+        site (str): the site url to fetch
+        cache (bool): whether or not to fetch info from cache
+        stale (int): the number of days in the past a link can be before becoming stale and requiring a refetch of data
+    """
     arts="../data/art_infos.json"
     if not cache:
         infos=grab_art_info(site, cache)
@@ -102,6 +126,11 @@ def get_art_info(site:str,cache:bool,stale:int):
     return infos
 
 def cache_info(infos):
+    """
+    writes article info to json file to cache it
+    args:
+        infos (dict): dictionary containing all the article info
+    """
     ct = datetime.now().timestamp()
     infos["time_cached"] = ct
 
@@ -179,15 +208,8 @@ def get_trending(soup,cache,stale):
 
                 #check if link is cached 
                 #sets boolean to see if link is cached dt (default 24 h) ago
-                #cached=false
-                
                 #fetch info w/ cache state
-                # print("FETCHING: ", link)
                 infos=get_art_info(link,cache,stale)
-                # print(infos)
-
-                # headline = a_element.find("h3").text.lstrip().rstrip()
-                # art["title"]=headline.lstrip()
                 art["title"]=infos["title"]
                 art["publication_date"]=infos["pd"]
                 art["author"]=infos["author"]
@@ -203,6 +225,17 @@ def save_json(infos: list,output: str):
         infos (list): list containing the json dictionaries to save
         output (str): string of filename to save to
     """
+    if not output.startswith('/') and not output.startswith('./'):
+        # If output is not an absolute path or a relative path, assume it's just a filename
+        # Define the directory path
+        directory = '../data'
+
+        # Check if the directory exists, and if not, create it
+        if not os.path.exists(directory):os.makedirs(directory)
+
+        # Now you can work with the file inside the directory
+        output = os.path.join(directory, output)
+
     json_data = json.dumps(infos, indent=4)
     
     with open(output, "w") as json_file:
@@ -215,7 +248,7 @@ def combo(output):
     args: output(str): output json file to write out
     """
     args.days=int(args.days)
-    args.cache = True if args.cache == "True" else False
+    args.cache = True if (args.cache == "True" or args.cache ==True ) else False
     glink="https://montrealgazette.com/category/news/"
     gaz=get_html(glink,args.cache,args.days)
     arts=get_trending(gaz,args.cache,args.days)
